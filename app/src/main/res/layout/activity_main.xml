@@ -16,7 +16,9 @@
     <GridLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.5">
+        android:layout_weight="0.5"
+        android:columnCount="4"
+        android:rowCount="5">
 
         <Button
             android:id="@+id/reset_button"
@@ -27,6 +29,9 @@
         <Button
             android:id="@+id/print_button"
             android:text="Print"/>
+        <Button
+            android:id="@+id/load_button"
+            android:text="LoadFS"/>
     </GridLayout>
 
 </LinearLayout>
