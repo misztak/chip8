@@ -30,8 +30,8 @@
             android:id="@+id/print_button"
             android:text="Print"/>
         <Button
-            android:id="@+id/load_button"
-            android:text="LoadFS"/>
+            android:id="@+id/dump_button"
+            android:text="Dump"/>
     </GridLayout>
 
 </LinearLayout>

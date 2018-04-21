@@ -2,8 +2,9 @@ package de.szostak.michael.chip8
 
 import android.util.Log
 import java.io.BufferedReader
+import java.io.InputStreamReader
 
-class CPU constructor(private val display: Display){
+object CPU {
     val tag = javaClass.simpleName!!
 
     // 8 bit memory with 16 bit pc
@@ -23,6 +24,13 @@ class CPU constructor(private val display: Display){
     var delayTimer: Int = 0
 
     // keyboard
+
+    // 64x32 display
+    val display = Display()
+
+    init {
+        loadFile(BufferedReader(InputStreamReader(App.getAssetManager().open("fontset"))), 0)
+    }
 
     fun loadFile(reader: BufferedReader, from: Int) {
         var position = from
