@@ -7,6 +7,8 @@ import android.graphics.drawable.BitmapDrawable
 import android.util.Log
 
 class Display {
+    private val tag = javaClass.simpleName
+
     private val width = 64
     private val height = 32
     val bitmap: Bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
@@ -37,6 +39,6 @@ class Display {
             }
             builder.append("\n")
         }
-        Log.i("Display", builder.toString())
+        Log.i(tag, builder.toString())
     }
 }
