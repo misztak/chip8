@@ -26,25 +26,28 @@ object CPU {
     // keyboard
 
     // 64x32 display
-    var display: Display = Display()
+    lateinit var display: Display
 
-    init {
-        // TODO: see if initialization inside reset can be recognised by compiler
+    fun run() {
         reset()
+        display.reset()
         loadFile(BufferedReader(InputStreamReader(App.getAssetManager().open("fontset"))), 0)
+
+        // start emulation loop
     }
 
     fun fetch(): Int {
-        // TODO: unit tests
         val opcode: Int = ((memory[pc] and 0xFF) shl 8) or (memory[pc+1] and 0xFF)
         // could cause problems to update pc this early
         pc += 2
         return opcode
     }
 
-    private fun reset() {
+    fun reset() {
+        // TODO: behaviour when resetting during emulation loop
+
         memory = Array(4096, {0})
-        pc = 0
+        pc = 512
 
         V = Array(16, {0})
         I = 0
@@ -57,7 +60,10 @@ object CPU {
 
         // keyboard
 
-        display = Display()
+    }
+
+    fun loadDisplay() {
+        display = Display
     }
 
     fun loadFile(reader: BufferedReader, from: Int) {

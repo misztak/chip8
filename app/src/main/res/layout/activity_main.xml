@@ -21,11 +21,11 @@
         android:rowCount="5">
 
         <Button
+            android:id="@+id/run_button"
+            android:text="Run"/>
+        <Button
             android:id="@+id/reset_button"
             android:text="Reset"/>
-        <Button
-            android:id="@+id/test_button"
-            android:text="Test"/>
         <Button
             android:id="@+id/print_button"
             android:text="Print"/>

@@ -6,12 +6,12 @@ import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.util.Log
 
-class Display {
+object Display {
     private val tag = javaClass.simpleName
 
-    private val width = 64
-    private val height = 32
-    val bitmap: Bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+    private const val width = 64
+    private const val height = 32
+    private val bitmap: Bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
     val scaledBitmap: BitmapDrawable = BitmapDrawable(Resources.getSystem(), bitmap)
 
     init {

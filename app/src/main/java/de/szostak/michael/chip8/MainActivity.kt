@@ -11,21 +11,22 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        run_button.setOnClickListener(runListener)
         reset_button.setOnClickListener(resetListener)
-        test_button.setOnClickListener(testListener)
         print_button.setOnClickListener(printListener)
         dump_button.setOnClickListener(dumpListener)
 
-        // TODO: see if this could cause memory leaks
+        CPU.loadDisplay()
         displayView.setImageDrawable(CPU.display.scaledBitmap)
     }
 
-    private val resetListener = View.OnClickListener {
-        CPU.display.reset()
+    private val runListener = View.OnClickListener {
+        CPU.run()
     }
 
-    private val testListener = View.OnClickListener {
-        CPU.display.switchPixel(5, 0, true)
+    private val resetListener = View.OnClickListener {
+        CPU.reset()
+        CPU.display.reset()
     }
 
     private val printListener = View.OnClickListener {
