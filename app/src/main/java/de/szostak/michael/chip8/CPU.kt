@@ -39,6 +39,71 @@ object CPU {
     fun fetch(): Int {
         val opcode: Int = ((memory[pc] and 0xFF) shl 8) or (memory[pc+1] and 0xFF)
         // could cause problems to update pc this early
+
+        return opcode
+    }
+
+    fun tick(opcode: Int): Int {
+        // TODO: write method description
+        // TODO: find useful return value
+        val index = (opcode and 0xF000) shr 12
+        val value = opcode and 0xFFF
+        when (index) {
+            0 -> {
+                when (value) {
+                    0x0E0 -> {
+                        // clear the display
+                        display.reset()
+                    }
+                    0x0EE -> {
+                        // return from subroutine
+                        if (sp > 0) {
+                            pc = stack[sp]
+                            sp--
+                        }
+                    }
+                    else -> {
+                        // error or call to RCA 1802 program
+                        Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
+                    }
+                }
+            }
+            1 -> {
+                // jump to address 'value'
+                pc = value
+            }
+            2 -> {
+                // call subroutine at 'value'
+                if (sp < 15) {
+                    sp++
+                    stack[sp] = pc
+                    pc = memory[pc]
+                }
+            }
+            3 -> {
+                // skip next instruction if Vx == NN
+                val x = (value and 0xF00) shr 8
+                if (V[x] == (value and 0xFF)) {
+                    pc += 2
+                }
+            }
+            4 -> return 4
+            5 -> return 5
+            6 -> return 6
+            7 -> return 7
+            8 -> return 8
+            9 -> return 9
+            0xA -> return 0xA
+            0xB -> return 0xB
+            0xC -> return 0xC
+            0xD -> return 0xD
+            0xE -> return 0xE
+            0xF -> return 0xF
+            else -> return -1
+        }
+        Log.d(tag, "Successfully executed opcode ${opcode.toString(16)}")
+
+        // TODO: see if this is the right place to increment
         pc += 2
         return opcode
     }

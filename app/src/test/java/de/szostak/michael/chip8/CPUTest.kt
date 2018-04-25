@@ -5,9 +5,9 @@ import org.junit.Test
 
 class CPUTest {
 
-    private fun setMemoryValues(value1: Int, value2: Int) {
-        CPU.memory[CPU.pc] = value1 and 0xFF
-        CPU.memory[CPU.pc+1] = value2 and 0xFF
+    private fun setMemoryValue(value: Int) {
+        CPU.memory[CPU.pc] = (value and 0xFF00) shr 8
+        CPU.memory[CPU.pc+1] = value and 0xFF
     }
 
     @Before
@@ -16,11 +16,24 @@ class CPUTest {
     }
 
     @Test
+    fun pcAtCorrectMemoryAddress() {
+        assert(CPU.pc == 512)
+    }
+
+    // TODO: create semi-dynamic tests
+
+    @Test
     fun fetchReturnsCorrectOpcode() {
-        setMemoryValues(0, 0)
+        setMemoryValue(0)
         assert(0 == CPU.fetch())
 
-        setMemoryValues("FF".toInt(16), "FF".toInt(16))
-        assert("FFFF".toInt(16) == CPU.fetch())
+        setMemoryValue(0xFFFF)
+        assert(0xFFFF == CPU.fetch())
+
+        setMemoryValue(0xF0F)
+        assert(0xF0F == CPU.fetch())
+
+        setMemoryValue(0xF00F0)
+        assert(0xF0 == CPU.fetch())
     }
 }
