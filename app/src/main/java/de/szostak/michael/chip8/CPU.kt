@@ -3,6 +3,7 @@ package de.szostak.michael.chip8
 import android.util.Log
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.*
 
 object CPU {
     private val tag = javaClass.simpleName
@@ -28,19 +29,20 @@ object CPU {
     // 64x32 display
     lateinit var display: Display
 
+    // RNG
+    val random: Random = Random()
+
     fun run() {
         reset()
         display.reset()
-        loadFile(BufferedReader(InputStreamReader(App.getAssetManager().open("fontset"))), 0)
+        loadFile(BufferedReader(InputStreamReader(App.getAssetManager()
+                .open("fontset"))), 0)
 
         // start emulation loop
     }
 
     fun fetch(): Int {
-        val opcode: Int = ((memory[pc] and 0xFF) shl 8) or (memory[pc+1] and 0xFF)
-        // could cause problems to update pc this early
-
-        return opcode
+        return ((memory[pc] and 0xFF) shl 8) or (memory[pc +1] and 0xFF)
     }
 
     fun tick(opcode: Int): Int {
@@ -48,6 +50,11 @@ object CPU {
         // TODO: find useful return value
         val index = (opcode and 0xF000) shr 12
         val value = opcode and 0xFFF
+
+        val x = (value and 0xF00) shr 8
+        val y = (value and 0x0F0) shr 4
+        val z = (value and 0x00F)
+
         when (index) {
             0 -> {
                 when (value) {
@@ -57,10 +64,8 @@ object CPU {
                     }
                     0x0EE -> {
                         // return from subroutine
-                        if (sp > 0) {
-                            pc = stack[sp]
-                            sp--
-                        }
+                        sp--
+                        pc = stack[sp]
                     }
                     else -> {
                         // error or call to RCA 1802 program
@@ -74,32 +79,174 @@ object CPU {
             }
             2 -> {
                 // call subroutine at 'value'
-                if (sp < 15) {
-                    sp++
-                    stack[sp] = pc
-                    pc = memory[pc]
-                }
+                stack[sp] = pc
+                sp++
+                pc = value
             }
             3 -> {
                 // skip next instruction if Vx == NN
-                val x = (value and 0xF00) shr 8
-                if (V[x] == (value and 0xFF)) {
-                    pc += 2
+                if (V[x] == (value and 0xFF)) pc += 2
+            }
+            4 -> {
+                // skip next instruction if Vx != NN
+                if (V[x] != (value and 0xFF)) pc += 2
+            }
+            5 -> {
+                // skip next instruction if Vx == Vy
+                if (V[x] == V[y]) pc += 2
+            }
+            6 -> {
+                // set Vx to NN
+                V[x] = value and 0xFF
+            }
+            7 -> {
+                // add NN to Vx
+                V[x] += value and 0xFF
+            }
+            8 -> {
+                when (z) {
+                    0 -> {
+                        // set Vx to the Vy
+                        V[x] = V[y]
+                    }
+                    1 -> {
+                        // set Vx to Vx OR Vy
+                        V[x] = V[x] or V[y]
+                    }
+                    2 -> {
+                        // set Vx to Vx AND Vy
+                        V[x] = V[x] and V[y]
+                    }
+                    3 -> {
+                        // set Vx to Vx XOR Vy
+                        V[x] = V[x] xor V[y]
+                    }
+                    4 -> {
+                        // add Vy to Vx
+                        // emulated registers are 8 bit
+                        // so the carry flag triggers after 255
+                        val total = V[x] + V[y]
+                        if (total > 255) {
+                            V[x] = (total - 256) and 0xFF
+                            V[0xF] = 1
+                        } else {
+                            V[x] = total
+                            V[0xF] = 0
+                        }
+                    }
+                    5 -> {
+                        // subtract Vy from Vx
+                        val total = V[x] - V[y]
+                        if (total < 0) {
+                            V[x] = total + 256
+                            V[0xF] = 0
+                        } else {
+                            V[x] = total
+                            V[0xF] = 1
+                        }
+                    }
+                    6 -> {
+                        // right-shift Vy by 1 and store result in Vx
+                        // CF set to lsb of Vy before shift
+                        V[0xF] = V[y] and 0x1
+                        V[x] = (V[y] shr 1) and 0xFF
+                    }
+                    7 -> {
+                        // subtract Vx from Vy
+                        // store result in Vx
+                        val total = V[y] - V[x]
+                        if (total < 0) {
+                            V[x] = total + 256
+                            V[0xF] = 0
+                        } else {
+                            V[x] = total
+                            V[0xF] = 1
+                        }
+                    }
+                    0xE -> {
+                        // left-shift Vy by 1 and store result in Vx
+                        // CF set to msb of Vy before shift
+                        V[0xF] = V[y] and 0x80
+                        V[x] = (V[y] shl 1) and 0xFF
+                    }
+                    else -> {
+                        Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
+                    }
                 }
             }
-            4 -> return 4
-            5 -> return 5
-            6 -> return 6
-            7 -> return 7
-            8 -> return 8
-            9 -> return 9
-            0xA -> return 0xA
-            0xB -> return 0xB
-            0xC -> return 0xC
-            0xD -> return 0xD
-            0xE -> return 0xE
-            0xF -> return 0xF
-            else -> return -1
+            9 -> {
+                // skip next instruction if Vx != Vy
+                if (V[x] != V[y]) pc += 2
+            }
+            0xA -> {
+                // set I to 'value'
+                I = value
+            }
+            0xB -> {
+                // jump to address at 'value' + V[0]
+                pc = value + V[0]
+            }
+            0xC -> {
+                // set Vx to RNG(0 - 255) AND NN
+                V[x] = random.nextInt(256) and (value and 0xFF)
+            }
+            0xD -> {
+                // TODO
+            }
+            0xE -> {
+                // TODO
+            }
+            0xF -> {
+                when (value and 0xFF) {
+                    0x7 -> {
+                        // set Vx to delay timer
+                        V[x] = delayTimer
+                    }
+                    0xA -> {
+                        // wait for key press and store in Vx
+                        // halts until next key event
+                        // TODO
+                    }
+                    0x15 -> {
+                        // set delay timer to Vx
+                        delayTimer = V[x]
+                    }
+                    0x18 -> {
+                        // set sound timer to Vx
+                        soundTimer = V[x]
+                    }
+                    0x1E -> {
+                        // add Vx to I
+                        I += V[x]
+                    }
+                    0x29 -> {
+                        // set I to the location of the sprite for the character in Vx
+                        I = V[x] * 5
+                    }
+                    0x33 -> {
+                        // store binary coded decimal value of Vx in memory
+                        // at position I, I + 1 and I + 2
+                        val bcd = V[x]
+                        memory[I] = bcd / 100
+                        memory[I + 1] = (bcd % 100) / 10
+                        memory[I + 2] = (bcd % 100) % 10
+                    }
+                    0x55 -> {
+                        // dump registers 0 to x into memory starting at address I
+                        for (i in 0 .. x) {
+                            memory[I + i] = V[i]
+                        }
+                    }
+                    0x65 -> {
+                        // load registers 0 to x from memory starting at address I
+                        for (i in 0 .. x) {
+                            V[i] = memory[I + i]
+                        }
+                    }
+                    else -> Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
+                }
+            }
+            else -> Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
         }
         Log.d(tag, "Successfully executed opcode ${opcode.toString(16)}")
 
