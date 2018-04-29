@@ -4,6 +4,7 @@ import android.util.Log
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.*
+import kotlin.concurrent.scheduleAtFixedRate
 
 object CPU {
     private val tag = javaClass.simpleName
@@ -33,12 +34,24 @@ object CPU {
     val random: Random = Random()
 
     fun run() {
-        reset()
-        display.reset()
         loadFile(BufferedReader(InputStreamReader(App.getAssetManager()
                 .open("fontset"))), 0)
 
+
+    //    loadFile(BufferedReader(InputStreamReader(App.getAssetManager()
+    //            .open("particle_demo"))), 512)
+
+        var counter = 1L
         // start emulation loop
+        val timer = Timer("emulation_loop", true)
+        timer.scheduleAtFixedRate(0L,2000L) {
+            if (counter % 60 == 0L) {
+                if (delayTimer != 0) delayTimer--
+                if (soundTimer != 0) soundTimer--
+            }
+            counter++
+            tick(fetch())
+        }
     }
 
     fun fetch(): Int {
@@ -106,7 +119,7 @@ object CPU {
             8 -> {
                 when (z) {
                     0 -> {
-                        // set Vx to the Vy
+                        // set Vx to Vy
                         V[x] = V[y]
                     }
                     1 -> {
@@ -166,7 +179,7 @@ object CPU {
                     0xE -> {
                         // left-shift Vy by 1 and store result in Vx
                         // CF set to msb of Vy before shift
-                        V[0xF] = V[y] and 0x80
+                        V[0xF] = (V[y] and 0x80) shr 7
                         V[x] = (V[y] shl 1) and 0xFF
                     }
                     else -> {
@@ -191,7 +204,26 @@ object CPU {
                 V[x] = random.nextInt(256) and (value and 0xFF)
             }
             0xD -> {
-                // TODO
+                // draw sprite
+                var counter = 0
+                V[0xF] = 0
+
+                while (counter < z) {
+                    val currentByte = memory[(I + counter) and 0xFF]
+                    for (i in 0 .. 7) {
+                        val posX = (V[x] + i) % 64
+                        val posY = (V[y] + counter) % 32
+
+                        val lastPixelValue = display.currentPixelValue(posX, posY)
+                        //TODO: see if this works according to specs
+                        val newPixelValue = lastPixelValue xor ((currentByte and (1 shl (7 - i))) != 0)
+
+                        display.switchPixel(posX, posY, newPixelValue)
+
+                        if (lastPixelValue && !newPixelValue) V[0xF] = 1
+                    }
+                    counter++
+                }
             }
             0xE -> {
                 // TODO
@@ -256,7 +288,7 @@ object CPU {
     }
 
     fun reset() {
-        // TODO: behaviour when resetting during emulation loop
+        // TODO: behaviour when resetting during emulation loop (private?)
 
         memory = Array(4096, {0})
         pc = 512
@@ -292,6 +324,7 @@ object CPU {
         }
         Log.d(tag, "Successfully loaded file into memory")
     }
+
 
     fun dumpMemory(from: Int, to: Int) {
         if (!isWithinMemory(from, to)) return

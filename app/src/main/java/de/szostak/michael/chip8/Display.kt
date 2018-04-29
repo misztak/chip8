@@ -22,6 +22,10 @@ object Display {
         bitmap.setPixel(x, y, if (state) Color.WHITE else Color.BLACK)
     }
 
+    fun currentPixelValue(x: Int, y: Int): Boolean {
+        return bitmap.getPixel(x, y) == 1
+    }
+
     fun reset() {
         val colorBlack = Color.BLACK
         for (i in 0 until width) {

@@ -4,6 +4,8 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,6 +23,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val runListener = View.OnClickListener {
+        CPU.loadFile(BufferedReader(InputStreamReader(assets
+                .open("particle_demo"))), 512)
         CPU.run()
     }
 
@@ -34,6 +38,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val dumpListener = View.OnClickListener {
-        CPU.dumpMemory(0, 512)
+        CPU.loadFile(BufferedReader(InputStreamReader(assets
+                .open("particle_demo"))), 512)
+        CPU.dumpMemory(512, 1024)
     }
 }
