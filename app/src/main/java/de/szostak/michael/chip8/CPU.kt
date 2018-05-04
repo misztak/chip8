@@ -4,7 +4,6 @@ import android.util.Log
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.*
-import kotlin.concurrent.scheduleAtFixedRate
 
 object CPU {
     private val tag = javaClass.simpleName
@@ -28,29 +27,33 @@ object CPU {
     // keyboard
 
     // 64x32 display
-    lateinit var display: Display
+    var display = Array(64, {IntArray(32)})
+    var drawFlag = false
 
     // RNG
     val random: Random = Random()
 
-    fun run() {
-        loadFile(BufferedReader(InputStreamReader(App.getAssetManager()
-                .open("fontset"))), 0)
+    // the cpu cycle speed in Hz
+    // TODO: make this optional
+    val cycleSpeed = 1
 
+    fun tick() {
+        val startTime: Long = System.nanoTime()
 
-    //    loadFile(BufferedReader(InputStreamReader(App.getAssetManager()
-    //            .open("particle_demo"))), 512)
+        drawFlag = false
+        decode(fetch())
 
-        var counter = 1L
-        // start emulation loop
-        val timer = Timer("emulation_loop", true)
-        timer.scheduleAtFixedRate(0L,2000L) {
-            if (counter % 60 == 0L) {
-                if (delayTimer != 0) delayTimer--
-                if (soundTimer != 0) soundTimer--
-            }
-            counter++
-            tick(fetch())
+        // TODO: decrement at correct speed
+        if (delayTimer > 0) delayTimer--
+        if (soundTimer > 0) soundTimer--
+
+        val endTime: Long = System.nanoTime()
+        val ticks: Long = (1000000 / cycleSpeed).toLong()
+
+        val remainingCycleWaitTime = ticks - (endTime - startTime)
+
+        if (remainingCycleWaitTime > 0) {
+            Thread.sleep(remainingCycleWaitTime / 1000)
         }
     }
 
@@ -58,7 +61,7 @@ object CPU {
         return ((memory[pc] and 0xFF) shl 8) or (memory[pc +1] and 0xFF)
     }
 
-    fun tick(opcode: Int): Int {
+    fun decode(opcode: Int): Int {
         // TODO: write method description
         // TODO: find useful return value
         val index = (opcode and 0xF000) shr 12
@@ -73,7 +76,7 @@ object CPU {
                 when (value) {
                     0x0E0 -> {
                         // clear the display
-                        display.reset()
+                        display = Array(64, { IntArray(32) })
                     }
                     0x0EE -> {
                         // return from subroutine
@@ -204,7 +207,9 @@ object CPU {
                 V[x] = random.nextInt(256) and (value and 0xFF)
             }
             0xD -> {
+                // TODO: Draw opcode
                 // draw sprite
+                /*
                 var counter = 0
                 V[0xF] = 0
 
@@ -215,7 +220,6 @@ object CPU {
                         val posY = (V[y] + counter) % 32
 
                         val lastPixelValue = display.currentPixelValue(posX, posY)
-                        //TODO: see if this works according to specs
                         val newPixelValue = lastPixelValue xor ((currentByte and (1 shl (7 - i))) != 0)
 
                         display.switchPixel(posX, posY, newPixelValue)
@@ -224,9 +228,10 @@ object CPU {
                     }
                     counter++
                 }
+                */
             }
             0xE -> {
-                // TODO
+                // TODO: Keyboard opcode 1
             }
             0xF -> {
                 when (value and 0xFF) {
@@ -237,7 +242,7 @@ object CPU {
                     0xA -> {
                         // wait for key press and store in Vx
                         // halts until next key event
-                        // TODO
+                        // TODO: Keyboard opcode 2
                     }
                     0x15 -> {
                         // set delay timer to Vx
@@ -288,8 +293,6 @@ object CPU {
     }
 
     fun reset() {
-        // TODO: behaviour when resetting during emulation loop (private?)
-
         memory = Array(4096, {0})
         pc = 512
 
@@ -302,12 +305,16 @@ object CPU {
         soundTimer = 0
         delayTimer = 0
 
+        display = Array(64, {IntArray(32)})
+        drawFlag = false
+
         // keyboard
 
-    }
+        CPU.loadFile(BufferedReader(InputStreamReader(App.getAssetManager()
+                .open("fontset"))), 0)
 
-    fun loadDisplay() {
-        display = Display
+        CPU.loadFile(BufferedReader(InputStreamReader(App.getAssetManager()
+                .open("particle_demo"))), 512)
     }
 
     fun loadFile(reader: BufferedReader, from: Int) {

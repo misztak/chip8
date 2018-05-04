@@ -7,7 +7,7 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <ImageView
+    <de.szostak.michael.chip8.DisplayView
         android:id="@+id/displayView"
         android:layout_width="match_parent"
         android:layout_height="0dp"

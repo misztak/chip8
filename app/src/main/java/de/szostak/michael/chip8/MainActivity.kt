@@ -8,6 +8,7 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class MainActivity : AppCompatActivity() {
+    // TODO: create launcher activity
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -17,24 +18,18 @@ class MainActivity : AppCompatActivity() {
         reset_button.setOnClickListener(resetListener)
         print_button.setOnClickListener(printListener)
         dump_button.setOnClickListener(dumpListener)
-
-        CPU.loadDisplay()
-        displayView.setImageDrawable(CPU.display.scaledBitmap)
     }
 
     private val runListener = View.OnClickListener {
-        CPU.loadFile(BufferedReader(InputStreamReader(assets
-                .open("particle_demo"))), 512)
-        CPU.run()
+
     }
 
     private val resetListener = View.OnClickListener {
         CPU.reset()
-        CPU.display.reset()
     }
 
     private val printListener = View.OnClickListener {
-        CPU.display.dumpDisplay()
+
     }
 
     private val dumpListener = View.OnClickListener {
