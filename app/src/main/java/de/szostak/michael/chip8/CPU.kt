@@ -207,31 +207,25 @@ object CPU {
                 V[x] = random.nextInt(256) and (value and 0xFF)
             }
             0xD -> {
-                // TODO: Draw opcode
                 // draw sprite
-                /*
-                var counter = 0
                 V[0xF] = 0
 
-                while (counter < z) {
-                    val currentByte = memory[(I + counter) and 0xFF]
-                    for (i in 0 .. 7) {
-                        val posX = (V[x] + i) % 64
-                        val posY = (V[y] + counter) % 32
-
-                        val lastPixelValue = display.currentPixelValue(posX, posY)
-                        val newPixelValue = lastPixelValue xor ((currentByte and (1 shl (7 - i))) != 0)
-
-                        display.switchPixel(posX, posY, newPixelValue)
-
-                        if (lastPixelValue && !newPixelValue) V[0xF] = 1
+                for (yPoint in 0 until z) {
+                    val pixelValue = memory[I + yPoint]
+                    val yPos = (V[y] + yPoint) % 32
+                    for (xPoint in 0 until 8) {
+                        val xPos = (V[x] + xPoint) % 64
+                        if ((pixelValue and (0x80 shr xPoint)) != 0) {
+                            if (display[xPos][yPos] == 1) V[0xF] = 1
+                            display[xPos][yPos] = display[xPos][yPos] xor 1
+                        }
                     }
-                    counter++
                 }
-                */
+                drawFlag = true
             }
             0xE -> {
                 // TODO: Keyboard opcode 1
+                Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
             }
             0xF -> {
                 when (value and 0xFF) {
@@ -243,6 +237,7 @@ object CPU {
                         // wait for key press and store in Vx
                         // halts until next key event
                         // TODO: Keyboard opcode 2
+                        Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
                     }
                     0x15 -> {
                         // set delay timer to Vx
@@ -285,7 +280,7 @@ object CPU {
             }
             else -> Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
         }
-        Log.d(tag, "Successfully executed opcode ${opcode.toString(16)}")
+        Log.d(tag, "Successfully executed opcode ${opcode.toString(16)} at position $pc")
 
         // TODO: see if this is the right place to increment
         pc += 2
@@ -314,7 +309,7 @@ object CPU {
                 .open("fontset"))), 0)
 
         CPU.loadFile(BufferedReader(InputStreamReader(App.getAssetManager()
-                .open("particle_demo"))), 512)
+                .open("test_rom"))), 512)
     }
 
     fun loadFile(reader: BufferedReader, from: Int) {
