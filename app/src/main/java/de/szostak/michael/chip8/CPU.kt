@@ -34,10 +34,15 @@ object CPU {
     val random: Random = Random()
 
     // the cpu cycle speed in Hz
-    // TODO: make this optional
-    val cycleSpeed = 1
+    // TODO: make this a changeable option
+    var cycleSpeed = 5
+    var pauseFlag = false
+
+    val profiler = Profiler()
 
     fun tick() {
+        if (pauseFlag) return
+
         val startTime: Long = System.nanoTime()
 
         drawFlag = false
@@ -280,10 +285,12 @@ object CPU {
             }
             else -> Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
         }
-        Log.d(tag, "Successfully executed opcode ${opcode.toString(16)} at position $pc")
+        //Log.d(tag, "Executed opcode ${opcode.toString(16)} at position $pc")
 
         // TODO: see if this is the right place to increment
         pc += 2
+
+        profiler.addOpcode(opcode)
         return opcode
     }
 
@@ -303,8 +310,14 @@ object CPU {
         display = Array(64, {IntArray(32)})
         drawFlag = false
 
-        // keyboard
+        profiler.attach()
 
+        // keyboard
+    }
+
+    // TODO: find a better way to do this
+    // hardcode fontset init and only use loadFile from an activity?
+    fun shitInit() {
         CPU.loadFile(BufferedReader(InputStreamReader(App.getAssetManager()
                 .open("fontset"))), 0)
 
