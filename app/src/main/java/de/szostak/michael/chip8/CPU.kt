@@ -34,8 +34,7 @@ object CPU {
     val random: Random = Random()
 
     // the cpu cycle speed in Hz
-    // TODO: make this a changeable option
-    var cycleSpeed = 5
+    var cycleSpeed = 500
     var pauseFlag = false
 
     val profiler = Profiler()
@@ -68,7 +67,6 @@ object CPU {
 
     fun decode(opcode: Int): Int {
         // TODO: write method description
-        // TODO: find useful return value
         val index = (opcode and 0xF000) shr 12
         val value = opcode and 0xFFF
 
@@ -287,7 +285,6 @@ object CPU {
         }
         //Log.d(tag, "Executed opcode ${opcode.toString(16)} at position $pc")
 
-        // TODO: see if this is the right place to increment
         pc += 2
 
         profiler.addOpcode(opcode)
@@ -351,7 +348,6 @@ object CPU {
 
     private fun isWithinMemory(from: Int, to: Int): Boolean {
         // TODO: see if kotlin offers an implementation for this
-        // TODO: do unit test for this
         if (to <= from) return false
         if (from < 0 || from >= memory.size) return false
         if (to < 1 || to > memory.size) return false

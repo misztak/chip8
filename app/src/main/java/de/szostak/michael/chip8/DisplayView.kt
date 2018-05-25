@@ -52,7 +52,6 @@ class DisplayView: SurfaceView, SurfaceHolder.Callback {
                 } else {
                     paint.color = Color.BLACK
                 }
-                // TODO: color options
                 canvas?.drawRect((x * scaledPixelWidth).toFloat(), (y * scaledPixelHeight).toFloat(),
                         ((x + 1) * scaledPixelWidth).toFloat(), ((y + 1) * scaledPixelHeight).toFloat(), paint)
             }
