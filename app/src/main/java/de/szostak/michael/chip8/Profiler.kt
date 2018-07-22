@@ -7,6 +7,7 @@ class Profiler {
 
     var active = false
     var opcodes = ArrayList<Int>()
+    var snapshots = StringBuilder()
 
     fun attach() {
         active = true
@@ -22,6 +23,10 @@ class Profiler {
 
     fun addOpcode(opcode: Int) {
         if (active) opcodes.add(opcode)
+    }
+
+    fun addSnapshot(s: String) {
+        if (active) snapshots.append(s)
     }
 
     fun opcodeOccurrences(): Map<Int, Int> {

@@ -1,8 +1,7 @@
 package de.szostak.michael.chip8
 
 import android.util.Log
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import java.io.*
 import java.util.*
 
 object CPU {
@@ -34,18 +33,28 @@ object CPU {
     val random: Random = Random()
 
     // the cpu cycle speed in Hz
-    var cycleSpeed = 500
+    var cycleSpeed = 30
     var pauseFlag = false
 
     val profiler = Profiler()
+    var opcode = 0
+    var endFlag = true
+
+    var shiftWithVy = true
+    var incrementI = true
+    var filename = "stars.ch8"
 
     fun tick() {
-        if (pauseFlag) return
+        if (pauseFlag) {
+            Thread.sleep(1000)
+            return
+        }
 
         val startTime: Long = System.nanoTime()
 
         drawFlag = false
-        decode(fetch())
+        opcode = fetch()
+        decode(opcode)
 
         // TODO: decrement at correct speed
         if (delayTimer > 0) delayTimer--
@@ -66,7 +75,8 @@ object CPU {
     }
 
     fun decode(opcode: Int): Int {
-        // TODO: write method description
+        profiler.addSnapshot(toString())
+
         val index = (opcode and 0xF000) shr 12
         val value = opcode and 0xFFF
 
@@ -89,12 +99,13 @@ object CPU {
                     else -> {
                         // error or call to RCA 1802 program
                         Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
+                        endFlag = true
                     }
                 }
             }
             1 -> {
                 // jump to address 'value'
-                pc = value
+                pc = value - 2
             }
             2 -> {
                 // call subroutine at 'value'
@@ -167,8 +178,13 @@ object CPU {
                     6 -> {
                         // right-shift Vy by 1 and store result in Vx
                         // CF set to lsb of Vy before shift
-                        V[0xF] = V[y] and 0x1
-                        V[x] = (V[y] shr 1) and 0xFF
+                        if (shiftWithVy) {
+                            V[0xF] = V[y] and 0x1
+                            V[x] = (V[y] shr 1) and 0xFF
+                        } else {
+                            V[0xF] = V[x] and 0x1
+                            V[x] = (V[x] shr 1) and 0xFF
+                        }
                     }
                     7 -> {
                         // subtract Vx from Vy
@@ -185,11 +201,17 @@ object CPU {
                     0xE -> {
                         // left-shift Vy by 1 and store result in Vx
                         // CF set to msb of Vy before shift
-                        V[0xF] = (V[y] and 0x80) shr 7
-                        V[x] = (V[y] shl 1) and 0xFF
+                        if (shiftWithVy) {
+                            V[0xF] = (V[y] and 0x80) shr 7
+                            V[x] = (V[y] shl 1) and 0xFF
+                        } else {
+                            V[0xF] = (V[x] and 0x80) shr 7
+                            V[x] = (V[x] shl 1) and 0xFF
+                        }
                     }
                     else -> {
                         Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
+                        endFlag = true
                     }
                 }
             }
@@ -229,6 +251,8 @@ object CPU {
             0xE -> {
                 // TODO: Keyboard opcode 1
                 Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
+                //pc += 2
+                endFlag = true
             }
             0xF -> {
                 when (value and 0xFF) {
@@ -241,6 +265,7 @@ object CPU {
                         // halts until next key event
                         // TODO: Keyboard opcode 2
                         Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
+                        endFlag = true
                     }
                     0x15 -> {
                         // set delay timer to Vx
@@ -271,17 +296,25 @@ object CPU {
                         for (i in 0 .. x) {
                             memory[I + i] = V[i]
                         }
+                        if (incrementI) I += x + 1
                     }
                     0x65 -> {
                         // load registers 0 to x from memory starting at address I
                         for (i in 0 .. x) {
                             V[i] = memory[I + i]
                         }
+                        if (incrementI) I += x + 1
                     }
-                    else -> Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
+                    else -> {
+                        Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
+                        endFlag = true
+                    }
                 }
             }
-            else -> Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
+            else -> {
+                Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
+                endFlag = true
+            }
         }
         //Log.d(tag, "Executed opcode ${opcode.toString(16)} at position $pc")
 
@@ -291,23 +324,25 @@ object CPU {
         return opcode
     }
 
-    fun reset() {
-        memory = Array(4096) {0}
+    fun reset(isUnitTest: Boolean = false) {
+        memory = Array(4096) { 0 }
         pc = 512
 
-        V = Array(16) {0}
+        V = Array(16) { 0 }
         I = 0
 
-        stack = Array(16) {0}
+        stack = Array(16) { 0 }
         sp = 0
 
         soundTimer = 0
         delayTimer = 0
 
-        display = Array(64) {IntArray(32)}
+        display = Array(64) { IntArray(32) }
         drawFlag = false
 
-        profiler.attach()
+        opcode = 0
+
+        endFlag = false
 
         // keyboard
 
@@ -315,13 +350,12 @@ object CPU {
             memory[index] = value and 0xFF
         }
 
-        CPU.loadFile(BufferedReader(InputStreamReader(App.getAssetManager()
-                .open("test_rom"))), 512)
+        if (!isUnitTest) {
+            CPU.loadFileToByteArray(BufferedInputStream(App.getAssetManager().open(filename)))
+        }
     }
 
-    fun loadFile(reader: BufferedReader, from: Int) {
-        // TODO: check behaviour for binary files
-        // TODO: check if file isn't too big
+    fun loadFromHexString(reader: BufferedReader, from: Int) {
         var position = from
         val values = reader.readLines()
         values.forEach {
@@ -334,6 +368,20 @@ object CPU {
         Log.d(tag, "Successfully loaded file into memory")
     }
 
+    fun loadFileToByteArray(stream: BufferedInputStream) {
+        val buffer = ByteArrayOutputStream()
+        var next: Int
+        do {
+            next = stream.read()
+            if (next == -1) break
+            buffer.write(next)
+        } while (true)
+        stream.close()
+        buffer.close()
+        val tmp = buffer.toByteArray()
+        tmp.forEachIndexed { index, byte -> memory[512 + index] = byte.toInt() and 0xFF }
+
+    }
 
     fun dumpMemory(from: Int, to: Int) {
         if (!isWithinMemory(from, to)) return
@@ -349,5 +397,24 @@ object CPU {
         if (from < 0 || from >= memory.size) return false
         if (to < 1 || to > memory.size) return false
         return true
+    }
+
+    override fun toString(): String {
+        val builder = StringBuilder()
+        builder.appendln("Next Opcode 0x${opcode.toString(16)}")
+        val relativePc = pc - 512
+        builder.appendln("PC Dec $pc Hex 0x${pc.toString(16)} Relative 0x${relativePc.toString(16)}")
+        builder.appendln("I Dec $I Hex 0x${I.toString(16)}")
+        V.forEachIndexed { index, value ->
+            builder.appendln("V${index.toString().toUpperCase()}: Dec $value Hex 0x${value.toString(16)}")
+        }
+        builder.appendln("SP Dec $sp Hex 0x${sp.toString(16)}")
+        for (i in 0 .. sp) {
+            builder.appendln("S${i.toString().toUpperCase()}: Dec ${stack[i]} Hex 0x${stack[i].toString(16)}")
+        }
+        builder.appendln()
+        builder.appendln("+++++++++++++++++++++++++")
+        builder.appendln()
+        return builder.toString()
     }
 }

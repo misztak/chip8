@@ -1,5 +1,6 @@
 package de.szostak.michael.chip8
 
+import android.content.Context
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -16,6 +17,8 @@ class MainActivity : AppCompatActivity() {
         pause_button.setOnClickListener(pauseListener)
         reset_button.setOnClickListener(resetListener)
         dump_button.setOnClickListener(dumpListener)
+
+        //CPU.profiler.attach()
     }
 
     private val pauseListener = View.OnClickListener {
@@ -40,5 +43,9 @@ class MainActivity : AppCompatActivity() {
             occurrences.append("${key.toString(16)} -> $value\n")
         }
         Log.d(tag, occurrences.toString())
+
+        applicationContext.openFileOutput("cpu_log.txt", Context.MODE_PRIVATE).use {
+            it.write(CPU.profiler.snapshots.toString().toByteArray())
+        }
     }
 }

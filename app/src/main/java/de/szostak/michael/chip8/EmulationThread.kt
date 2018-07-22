@@ -19,6 +19,10 @@ class EmulationThread(private val displayView: DisplayView) : Thread() {
         while (running) {
             CPU.tick()
 
+            if (CPU.endFlag) {
+                setRunning(false)
+            }
+
             if (CPU.drawFlag) {
                 displayView.postInvalidate()
             }

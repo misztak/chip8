@@ -12,7 +12,7 @@ class CPUTest {
 
     @Before
     fun resetCPU() {
-        CPU.reset()
+        CPU.reset(true)
     }
 
     @Test
