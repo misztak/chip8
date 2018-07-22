@@ -31,7 +31,6 @@ class MainActivity : AppCompatActivity() {
     private val resetListener = View.OnClickListener {
         // TODO: see what this will do
         CPU.reset()
-        CPU.shitInit()
     }
 
     private val dumpListener = View.OnClickListener {

@@ -310,13 +310,10 @@ object CPU {
         profiler.attach()
 
         // keyboard
-    }
 
-    // TODO: find a better way to do this
-    // hardcode fontset init and only use loadFile from an activity?
-    fun shitInit() {
-        CPU.loadFile(BufferedReader(InputStreamReader(App.getAssetManager()
-                .open("fontset"))), 0)
+        Fontset.font.forEachIndexed { index, value ->
+            memory[index] = value and 0xFF
+        }
 
         CPU.loadFile(BufferedReader(InputStreamReader(App.getAssetManager()
                 .open("test_rom"))), 512)

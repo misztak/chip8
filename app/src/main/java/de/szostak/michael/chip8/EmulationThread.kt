@@ -16,7 +16,6 @@ class EmulationThread(private val displayView: DisplayView) : Thread() {
             running = this.running
         }
         CPU.reset()
-        CPU.shitInit()
         while (running) {
             CPU.tick()
 
