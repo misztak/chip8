@@ -9,15 +9,15 @@ object CPU {
     private val tag = javaClass.simpleName
 
     // 8 bit memory with 16 bit pc
-    var memory = Array(4096, {0})
+    var memory = Array(4096) {0}
     var pc: Int = 0
 
     // 8 bit registers and 16 bit I register
-    var V = Array(16, {0})
+    var V = Array(16) {0}
     var I: Int = 0
 
     // 16 bit stack with 8 bit sp
-    var stack = Array(16, {0})
+    var stack = Array(16) {0}
     var sp: Int = 0
 
     // 8 bit timer
@@ -27,7 +27,7 @@ object CPU {
     // keyboard
 
     // 64x32 display
-    var display = Array(64, {IntArray(32)})
+    var display = Array(64) {IntArray(32)}
     var drawFlag = false
 
     // RNG
@@ -62,7 +62,7 @@ object CPU {
     }
 
     fun fetch(): Int {
-        return ((memory[pc] and 0xFF) shl 8) or (memory[pc +1] and 0xFF)
+        return ((memory[pc] and 0xFF) shl 8) or (memory[pc + 1] and 0xFF)
     }
 
     fun decode(opcode: Int): Int {
@@ -79,7 +79,7 @@ object CPU {
                 when (value) {
                     0x0E0 -> {
                         // clear the display
-                        display = Array(64, { IntArray(32) })
+                        display = Array(64) { IntArray(32) }
                     }
                     0x0EE -> {
                         // return from subroutine
@@ -292,19 +292,19 @@ object CPU {
     }
 
     fun reset() {
-        memory = Array(4096, {0})
+        memory = Array(4096) {0}
         pc = 512
 
-        V = Array(16, {0})
+        V = Array(16) {0}
         I = 0
 
-        stack = Array(16, {0})
+        stack = Array(16) {0}
         sp = 0
 
         soundTimer = 0
         delayTimer = 0
 
-        display = Array(64, {IntArray(32)})
+        display = Array(64) {IntArray(32)}
         drawFlag = false
 
         profiler.attach()
