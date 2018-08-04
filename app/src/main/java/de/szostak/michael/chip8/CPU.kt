@@ -7,6 +7,10 @@ import java.util.*
 object CPU {
     private val tag = javaClass.simpleName
 
+    // all comments regarding emulated hardware will specify the original size of the component
+    // even if this implementation emulates it in a different data type
+    // e.g. 16 bit program counter (unsigned) stored in 32 bit integer (signed)
+
     // 8 bit memory with 16 bit pc
     var memory = Array(4096) {0}
     var pc: Int = 0
@@ -15,9 +19,8 @@ object CPU {
     var V = Array(16) {0}
     var I: Int = 0
 
-    // 16 bit stack with 8 bit sp
-    var stack = Array(16) {0}
-    var sp: Int = 0
+    // 16 bit stack of size 12
+    var stack = Stack<Int>()
 
     // 8 bit timer
     var soundTimer: Int = 0
@@ -32,8 +35,10 @@ object CPU {
     // RNG
     val random: Random = Random()
 
-    // the cpu cycle speed in Hz
-    var cycleSpeed = 30
+    val framesPerSecond = 60
+    val cyclesPerFrame = 7
+    val cyclesPerNanoSecond = (1e9 / (framesPerSecond * cyclesPerFrame)).toLong()
+    var cycleCounter = 0
     var pauseFlag = false
 
     val profiler = Profiler()
@@ -42,12 +47,20 @@ object CPU {
 
     var shiftWithVy = true
     var incrementI = true
-    var filename = "stars.ch8"
+    var filename = "cave_explorer.ch8"
 
     fun tick() {
         if (pauseFlag) {
             Thread.sleep(1000)
             return
+        }
+
+        if (cycleCounter == cyclesPerFrame) {
+            if (delayTimer > 0) delayTimer--
+            if (soundTimer > 0) soundTimer--
+            cycleCounter = 0
+        } else {
+            cycleCounter++
         }
 
         val startTime: Long = System.nanoTime()
@@ -56,17 +69,12 @@ object CPU {
         opcode = fetch()
         decode(opcode)
 
-        // TODO: decrement at correct speed
-        if (delayTimer > 0) delayTimer--
-        if (soundTimer > 0) soundTimer--
-
         val endTime: Long = System.nanoTime()
-        val ticks: Long = (1000000 / cycleSpeed).toLong()
 
-        val remainingCycleWaitTime = ticks - (endTime - startTime)
+        val remainingCycleWaitTime = cyclesPerNanoSecond - (endTime - startTime)
 
         if (remainingCycleWaitTime > 0) {
-            Thread.sleep(remainingCycleWaitTime / 1000)
+            Thread.sleep((remainingCycleWaitTime / 1e6).toLong())
         }
     }
 
@@ -93,8 +101,7 @@ object CPU {
                     }
                     0x0EE -> {
                         // return from subroutine
-                        sp--
-                        pc = stack[sp]
+                        pc = stack.pop()
                     }
                     else -> {
                         // error or call to RCA 1802 program
@@ -109,9 +116,13 @@ object CPU {
             }
             2 -> {
                 // call subroutine at 'value'
-                stack[sp] = pc
-                sp++
-                pc = value
+                if (stack.size >= 12) {
+                    Log.e(tag, "Stack overflow")
+                    endFlag = true
+                } else {
+                    stack.push(pc)
+                    pc = value - 2
+                }
             }
             3 -> {
                 // skip next instruction if Vx == NN
@@ -225,7 +236,7 @@ object CPU {
             }
             0xB -> {
                 // jump to address at 'value' + V[0]
-                pc = value + V[0]
+                pc = value + V[0] - 2
             }
             0xC -> {
                 // set Vx to RNG(0 - 255) AND NN
@@ -331,8 +342,7 @@ object CPU {
         V = Array(16) { 0 }
         I = 0
 
-        stack = Array(16) { 0 }
-        sp = 0
+        stack = Stack()
 
         soundTimer = 0
         delayTimer = 0
@@ -343,6 +353,7 @@ object CPU {
         opcode = 0
 
         endFlag = false
+        cycleCounter = 0
 
         // keyboard
 
@@ -408,9 +419,8 @@ object CPU {
         V.forEachIndexed { index, value ->
             builder.appendln("V${index.toString().toUpperCase()}: Dec $value Hex 0x${value.toString(16)}")
         }
-        builder.appendln("SP Dec $sp Hex 0x${sp.toString(16)}")
-        for (i in 0 .. sp) {
-            builder.appendln("S${i.toString().toUpperCase()}: Dec ${stack[i]} Hex 0x${stack[i].toString(16)}")
+        stack.forEachIndexed { index, value ->
+            builder.appendln("S${index.toString().toUpperCase()}: Dec $value Hex 0x${value.toString(16)}")
         }
         builder.appendln()
         builder.appendln("+++++++++++++++++++++++++")
