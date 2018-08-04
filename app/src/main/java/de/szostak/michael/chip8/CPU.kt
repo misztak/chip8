@@ -7,9 +7,9 @@ import java.util.*
 object CPU {
     private val tag = javaClass.simpleName
 
-    // all comments regarding emulated hardware will specify the original size of the component
+    // all comments regarding emulated hardware will reference the original size of the component
     // even if this implementation emulates it in a different data type
-    // e.g. 16 bit program counter (unsigned) stored in 32 bit integer (signed)
+    // e.g. 16 bit program counter (unsigned) stored as 32 bit integer (signed)
 
     // 8 bit memory with 16 bit pc
     var memory = Array(4096) {0}
@@ -37,7 +37,7 @@ object CPU {
 
     val framesPerSecond = 60
     val cyclesPerFrame = 7
-    val cyclesPerNanoSecond = (1e9 / (framesPerSecond * cyclesPerFrame)).toLong()
+    val singleCycleDuration = (1e9 / (framesPerSecond * cyclesPerFrame)).toLong()
     var cycleCounter = 0
     var pauseFlag = false
 
@@ -71,7 +71,7 @@ object CPU {
 
         val endTime: Long = System.nanoTime()
 
-        val remainingCycleWaitTime = cyclesPerNanoSecond - (endTime - startTime)
+        val remainingCycleWaitTime = singleCycleDuration - (endTime - startTime)
 
         if (remainingCycleWaitTime > 0) {
             Thread.sleep((remainingCycleWaitTime / 1e6).toLong())
