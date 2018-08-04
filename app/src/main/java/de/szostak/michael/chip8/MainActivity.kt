@@ -15,7 +15,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         pause_button.setOnClickListener(pauseListener)
-        reset_button.setOnClickListener(resetListener)
         dump_button.setOnClickListener(dumpListener)
 
         //CPU.profiler.attach()
@@ -29,11 +28,6 @@ class MainActivity : AppCompatActivity() {
             Log.d(tag, "Resuming execution")
             CPU.pauseFlag = false
         }
-    }
-
-    private val resetListener = View.OnClickListener {
-        // TODO: see what this will do
-        CPU.reset()
     }
 
     private val dumpListener = View.OnClickListener {
