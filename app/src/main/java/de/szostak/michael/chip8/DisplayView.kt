@@ -6,7 +6,9 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Point
+import android.os.CountDownTimer
 import android.util.AttributeSet
+import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.WindowManager
@@ -16,6 +18,18 @@ class DisplayView: SurfaceView, SurfaceHolder.Callback {
 
     private lateinit var viewContext: Context
     private lateinit var emulationThread: EmulationThread
+
+    val timer = object : CountDownTimer(Long.MAX_VALUE, 1000L / CPU.framesPerSecond) {
+        override fun onFinish() {
+            Log.e(tag, "Timer finished")
+            CPU.endFlag = true
+        }
+
+        override fun onTick(p0: Long) {
+            if (CPU.delayTimer > 0) CPU.delayTimer--
+            if (CPU.soundTimer > 0) CPU.soundTimer--
+        }
+    }
 
     private var displayWidth = 0
     private var displayHeight = 0

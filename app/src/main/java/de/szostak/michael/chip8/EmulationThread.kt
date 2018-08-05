@@ -15,7 +15,10 @@ class EmulationThread(private val displayView: DisplayView) : Thread() {
         synchronized(lock) {
             running = this.running
         }
+
         CPU.reset()
+        displayView.timer.start()
+
         while (running) {
             CPU.tick()
 
@@ -31,5 +34,6 @@ class EmulationThread(private val displayView: DisplayView) : Thread() {
                 running = this.running
             }
         }
+        displayView.timer.cancel()
     }
 }

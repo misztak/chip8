@@ -36,9 +36,9 @@ object CPU {
     val random: Random = Random()
 
     val framesPerSecond = 60
-    val cyclesPerFrame = 7
+    val cyclesPerFrame = 20
     val singleCycleDuration = (1e9 / (framesPerSecond * cyclesPerFrame)).toLong()
-    var cycleCounter = 0
+
     var pauseFlag = false
 
     val profiler = Profiler()
@@ -53,14 +53,6 @@ object CPU {
         if (pauseFlag) {
             Thread.sleep(1000)
             return
-        }
-
-        if (cycleCounter == cyclesPerFrame) {
-            if (delayTimer > 0) delayTimer--
-            if (soundTimer > 0) soundTimer--
-            cycleCounter = 0
-        } else {
-            cycleCounter++
         }
 
         val startTime: Long = System.nanoTime()
@@ -353,7 +345,7 @@ object CPU {
         opcode = 0
 
         endFlag = false
-        cycleCounter = 0
+
 
         // keyboard
 
