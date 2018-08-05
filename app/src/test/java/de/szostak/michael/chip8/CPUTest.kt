@@ -42,13 +42,4 @@ class CPUTest {
         CPU.display.forEach { assert(it.contentEquals(IntArray(32))) }
     }
 
-    @Test
-    fun returnFromRoutineOpcode() {
-        setMemoryValue(0x00EE)
-        CPU.stack[CPU.sp] = 69
-        CPU.sp++
-        assert(0x00EE == CPU.decode(CPU.fetch()))
-        assert(CPU.sp == 0)
-        assert(CPU.pc == 71)
-    }
 }

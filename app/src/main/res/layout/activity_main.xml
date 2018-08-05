@@ -11,7 +11,7 @@
         android:id="@+id/displayView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="1" />
 
     <com.google.android.flexbox.FlexboxLayout
         android:layout_width="match_parent"
@@ -22,105 +22,123 @@
 
         <Button
             android:id="@+id/pause_button"
-            android:text="Pause"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content" />
-        <Button
-            android:id="@+id/reset_button"
-            android:text="Reset"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
-        <Button
-            android:id="@+id/dump_button"
-            android:text="Dump"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
-        <Button
-            android:id="@+id/misc_button"
-            android:text="Misc"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="Pause" />
 
         <Button
-            android:id="@+id/zero_button"
-            android:text="0"
+            android:id="@+id/reset_button"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="Reset" />
+
         <Button
-            android:id="@+id/one_button"
-            android:text="1"
+            android:id="@+id/dump_button"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="Dump" />
+
         <Button
-            android:id="@+id/two_button"
-            android:text="2"
+            android:id="@+id/misc_button"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="Misc" />
+
         <Button
-            android:id="@+id/three_button"
-            android:text="3"
+            android:id="@+id/button_1"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="1" />
+
         <Button
-            android:id="@+id/four_button"
-            android:text="4"
+            android:id="@+id/button_2"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="2" />
+
         <Button
-            android:id="@+id/five_button"
-            android:text="5"
+            android:id="@+id/button_3"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="3" />
+
         <Button
-            android:id="@+id/six_button"
-            android:text="6"
+            android:id="@+id/button_12"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="C" />
+
         <Button
-            android:id="@+id/seven_button"
-            android:text="7"
+            android:id="@+id/button_4"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="4" />
+
         <Button
-            android:id="@+id/eight_button"
-            android:text="8"
+            android:id="@+id/button_5"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="5" />
+
         <Button
-            android:id="@+id/nine_button"
-            android:text="9"
+            android:id="@+id/button_6"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="6" />
+
         <Button
-            android:id="@+id/a_button"
-            android:text="A"
+            android:id="@+id/button_13"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="D" />
+
         <Button
-            android:id="@+id/b_button"
-            android:text="B"
+            android:id="@+id/button_7"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="7" />
+
         <Button
-            android:id="@+id/c_button"
-            android:text="C"
+            android:id="@+id/button_8"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="8" />
+
         <Button
-            android:id="@+id/d_button"
-            android:text="D"
+            android:id="@+id/button_9"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="9" />
+
         <Button
-            android:id="@+id/e_button"
-            android:text="E"
+            android:id="@+id/button_14"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="E" />
+
         <Button
-            android:id="@+id/f_button"
-            android:text="F"
+            android:id="@+id/button_10"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
+            android:text="A" />
+
+        <Button
+            android:id="@+id/button_0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0" />
+
+        <Button
+            android:id="@+id/button_11"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="B" />
+
+        <Button
+            android:id="@+id/button_15"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="F" />
     </com.google.android.flexbox.FlexboxLayout>
 
 </LinearLayout>

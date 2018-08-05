@@ -27,6 +27,8 @@ object CPU {
     var delayTimer: Int = 0
 
     // keyboard
+    var keyboard = Array(16) {0}
+    var keyPressed = 0
 
     // 64x32 display
     var display = Array(64) {IntArray(32)}
@@ -252,10 +254,22 @@ object CPU {
                 drawFlag = true
             }
             0xE -> {
-                // TODO: Keyboard opcode 1
-                Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
-                //pc += 2
-                endFlag = true
+                when (value and 0xFF) {
+                    // skip following instruction if the key corresponding to the hex value
+                    // stored inside Vx is pressed
+                    0x9e -> {
+                        if (keyboard[V[x]] == 1) pc += 2
+                    }
+                    // skip following instruction if the key corresponding to the hex value
+                    // stored inside Vx is not pressed
+                    0xa1 -> {
+                        if (keyboard[V[x]] == 0) pc += 2
+                    }
+                    else -> {
+                        Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
+                        endFlag = true
+                    }
+                }
             }
             0xF -> {
                 when (value and 0xFF) {
@@ -266,9 +280,11 @@ object CPU {
                     0xA -> {
                         // wait for key press and store in Vx
                         // halts until next key event
-                        // TODO: Keyboard opcode 2
-                        Log.e(tag, "Unimplemented opcode ${opcode.toString(16)}")
-                        endFlag = true
+                        while (keyPressed == -1) {
+                            Thread.sleep(100)
+                        }
+                        V[x] = keyPressed
+                        keyPressed = -1
                     }
                     0x15 -> {
                         // set delay timer to Vx
@@ -319,7 +335,6 @@ object CPU {
                 endFlag = true
             }
         }
-        //Log.d(tag, "Executed opcode ${opcode.toString(16)} at position $pc")
 
         pc += 2
 
@@ -346,8 +361,8 @@ object CPU {
 
         endFlag = false
 
-
-        // keyboard
+        keyboard = Array(16) {0}
+        keyPressed = -1
 
         Fontset.font.forEachIndexed { index, value ->
             memory[index] = value and 0xFF

@@ -31,7 +31,6 @@ class Profiler {
 
     fun opcodeOccurrences(): Map<Int, Int> {
         val opcodeMap = opcodes.groupingBy { it }.eachCount()
-        // TODO: different sort options
         return opcodeMap.toSortedMap()
     }
 }
